@@ -188,7 +188,7 @@ RUN if [ ${INSTALL_SSH2} = true ]; then \
 ;fi
 
 ###########################################################################
-# GMP:
+# SOAP:
 ###########################################################################
 
 USER root
@@ -197,7 +197,7 @@ ARG INSTALL_GMP=false
 ARG PHP_VERSION=${PHP_VERSION}
 
 RUN if [ ${INSTALL_GMP} = true ]; then \
-  # Install the PHP GMP extension
+  # Install the PHP SOAP extension
   apt-get -y install php${PHP_VERSION}-gmp \
 ;fi
 
@@ -360,8 +360,22 @@ ARG INSTALL_PHPREDIS=false
 
 RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
     # Install Php Redis extension
-    printf "\n" | pecl -q install -o -f redis && \
-    echo "extension=redis.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/redis.ini && \
+    # printf "\n" | pecl -q install -o -f redis && \
+    # echo "extension=redis.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/redis.ini && \
+    # phpenmod redis \
+    curl -L -o /tmp/phpredis.tar.gz "https://github.com/phpredis/phpredis/archive/4.1.1.tar.gz" \
+    && mkdir -p phpredis \
+    && tar -C phpredis -zxvf /tmp/phpredis.tar.gz --strip 1 \
+    && ( \
+        cd phpredis \
+        && phpize \
+        && ./configure \
+        && make \
+        && make install \
+    ) \
+    && rm -r phpredis \
+    && rm /tmp/phpredis.tar.gz \
+    && echo "extension=redis.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/redis.ini && \
     phpenmod redis \
 ;fi
 
@@ -393,8 +407,8 @@ RUN if [ ${INSTALL_SWOOLE} = true ]; then \
 ARG INSTALL_LIBPNG=false
 
 RUN if [ ${INSTALL_LIBPNG} = true ]; then \
-    apt-get update && \
-    apt-get install libpng16-16 \
+    apt update && \
+    apt install libpng16-16 \
 ;fi
 
 ###########################################################################
@@ -446,8 +460,7 @@ ENV NVM_DIR /home/laradock/.nvm
 
 RUN if [ ${INSTALL_NODE} = true ]; then \
     # Install nvm (A Node Version Manager)
-    mkdir -p $NVM_DIR && \
-    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash \
+    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash \
         && . $NVM_DIR/nvm.sh \
         && nvm install ${NODE_VERSION} \
         && nvm use ${NODE_VERSION} \
@@ -842,25 +855,6 @@ RUN if [ ${INSTALL_DUSK_DEPS} = true ]; then \
   && unzip chromedriver_linux64.zip \
   && mv chromedriver /usr/local/bin/ \
   && rm chromedriver_linux64.zip \
-;fi
-
-###########################################################################
-# Phalcon:
-###########################################################################
-
-ARG INSTALL_PHALCON=false
-ARG LARADOCK_PHALCON_VERSION
-ENV LARADOCK_PHALCON_VERSION ${LARADOCK_PHALCON_VERSION}
-
-RUN if [ $INSTALL_PHALCON = true ]; then \
-    apt-get update && apt-get install -y unzip libpcre3-dev gcc make re2c \
-    && curl -L -o /tmp/cphalcon.zip https://github.com/phalcon/cphalcon/archive/v${LARADOCK_PHALCON_VERSION}.zip \
-    && unzip -d /tmp/ /tmp/cphalcon.zip \
-    && cd /tmp/cphalcon-${LARADOCK_PHALCON_VERSION}/build \
-    && ./install \
-    && echo "extension=phalcon.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/phalcon.ini \
-    && ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/phalcon.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/30-phalcon.ini \
-    && rm -rf /tmp/cphalcon* \
 ;fi
 
 ###########################################################################

@@ -68,18 +68,6 @@ RUN if [ ${INSTALL_SSH2} = true ]; then \
 ;fi
 
 ###########################################################################
-# libfaketime:
-###########################################################################
-
-USER root
-
-ARG INSTALL_FAKETIME=false
-
-RUN if [ ${INSTALL_FAKETIME} = true ]; then \
-    apt-get install -y libfaketime \
-;fi
-
-###########################################################################
 # SOAP:
 ###########################################################################
 
@@ -173,9 +161,22 @@ ARG INSTALL_PHPREDIS=false
 
 RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
     # Install Php Redis Extension
-    printf "\n" | pecl install -o -f redis \
-    &&  rm -rf /tmp/pear \
-    &&  docker-php-ext-enable redis \
+    # printf "\n" | pecl install -o -f redis \
+    # &&  rm -rf /tmp/pear \
+    # &&  docker-php-ext-enable redis \
+    curl -L -o /tmp/phpredis.tar.gz "https://github.com/phpredis/phpredis/archive/4.1.1.tar.gz" \
+    && mkdir -p phpredis \
+    && tar -C phpredis -zxvf /tmp/phpredis.tar.gz --strip 1 \
+    && ( \
+        cd phpredis \
+        && phpize \
+        && ./configure \
+        && make \
+        && make install \
+    ) \
+    && rm -r phpredis \
+    && rm /tmp/phpredis.tar.gz \
+    && docker-php-ext-enable redis \
 ;fi
 
 ###########################################################################
@@ -499,7 +500,11 @@ ARG INSTALL_IMAGEMAGICK=false
 
 RUN if [ ${INSTALL_IMAGEMAGICK} = true ]; then \
     apt-get install -y libmagickwand-dev imagemagick && \
-    pecl install imagick && \
+    # pecl install imagick && \
+    curl -L -o /tmp/imagick-3.4.3.tgz "http://pecl.php.net/get/imagick-3.4.3.tgz" && \
+    cd /tmp && \
+    pecl install imagick-3.4.3.tgz && \
+    rm -rf imagick-3.4.3.tgz && \
     docker-php-ext-enable imagick \
 ;fi
 
@@ -530,22 +535,15 @@ RUN if [ ${INSTALL_CALENDAR} = true ]; then \
 ;fi
 
 ###########################################################################
-# Phalcon:
+# libfaketime:
 ###########################################################################
 
-ARG INSTALL_PHALCON=false
-ARG LARADOCK_PHALCON_VERSION
-ENV LARADOCK_PHALCON_VERSION ${LARADOCK_PHALCON_VERSION}
+USER root
 
-RUN if [ $INSTALL_PHALCON = true ]; then \
-    apt-get update && apt-get install -y unzip libpcre3-dev gcc make re2c \
-    && curl -L -o /tmp/cphalcon.zip https://github.com/phalcon/cphalcon/archive/v${LARADOCK_PHALCON_VERSION}.zip \
-    && unzip -d /tmp/ /tmp/cphalcon.zip \
-    && cd /tmp/cphalcon-${LARADOCK_PHALCON_VERSION}/build \
-    && ./install \
-    && echo "extension=phalcon.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/phalcon.ini \
-    && ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/phalcon.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/30-phalcon.ini \
-    && rm -rf /tmp/cphalcon* \
+ARG INSTALL_FAKETIME=false
+
+RUN if [ ${INSTALL_FAKETIME} = true ]; then \
+    apt-get install -y libfaketime \
 ;fi
 
 ###########################################################################
