@@ -126,7 +126,9 @@ ARG COMPOSER_REPO_PACKAGIST
 ENV COMPOSER_REPO_PACKAGIST ${COMPOSER_REPO_PACKAGIST}
 
 RUN if [ ${COMPOSER_REPO_PACKAGIST} ]; then \
-    composer config -g repo.packagist composer ${COMPOSER_REPO_PACKAGIST} \
+    composer config -g repo.packagist composer ${COMPOSER_REPO_PACKAGIST}  && \
+    composer slef-update && \
+    composer global require hirak/prestissimo \
 ;fi
 
 # Export composer vendor path
