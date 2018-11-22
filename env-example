@@ -426,6 +426,3 @@ IDE_WEBIDE_PORT=984
 IDE_CODIAD_PORT=985
 IDE_ICECODER_PORT=986
 
-### Certbot #########################################
-CERTBOT_CN=jochen-z.com
-CERTBOT_EMAIL=jochenzhang94@gmail.com

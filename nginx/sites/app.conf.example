@@ -1,7 +1,19 @@
-server {
+# HTTPS配置
 
-    listen 80;
-    listen [::]:80;
+server {
+    listen 80       default_server;
+    listen [::]:80  default_server ipv6only=on;
+
+    server_name app.test;
+
+    rewrite ^(.*)$  https://$host$1 permanent; #将所有 http 请求通过 rewrite 重定向到 https
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server ipv6only=on;
+    ssl_certificate /var/certs/cert1.pem;
+    ssl_certificate_key /var/certs/privkey1.pem;
 
     server_name app.test;
     root /var/www/app;
@@ -21,15 +33,12 @@ server {
         #fixes timeouts
         fastcgi_read_timeout 600;
         include fastcgi_params;
+        fastcgi_hide_header X-Powered-By; #屏蔽PHP版本号
+        fastcgi_param HTTPS $https if_not_empty;
     }
 
     location ~ /\.ht {
         deny all;
-    }
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/letsencrypt/;
-        log_not_found off;
     }
 
     error_log /var/log/nginx/app_error.log;
