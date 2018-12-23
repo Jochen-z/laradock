@@ -241,3 +241,13 @@ services:
     #     - EMAIL=jochenzhang94@gmail.com
     #   networks:
     #     - frontend
+
+### Mailhog ################################################
+    mailhog:
+      build: ./mailhog
+      ports:
+        - "1025:1025"
+        - "8025:8025"
+      networks:
+        - frontend
+        - backend

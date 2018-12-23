@@ -37,6 +37,9 @@ ARG PGID=1000
 ENV PGID ${PGID}
 
 # always run apt update when start and after add new source list, then clean up at end.
+# 解决 Unable to fetch some archives
+RUN echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+
 RUN apt-get update -yqq && \
     pecl channel-update pecl.php.net && \
     groupadd -g ${PGID} laradock && \
@@ -125,9 +128,11 @@ RUN if [ ${COMPOSER_GLOBAL_INSTALL} = true ]; then \
 ARG COMPOSER_REPO_PACKAGIST
 ENV COMPOSER_REPO_PACKAGIST ${COMPOSER_REPO_PACKAGIST}
 
+USER root
+
 RUN if [ ${COMPOSER_REPO_PACKAGIST} ]; then \
     composer config -g repo.packagist composer ${COMPOSER_REPO_PACKAGIST}  && \
-    composer slef-update && \
+    composer self-update && \
     composer global require hirak/prestissimo \
 ;fi
 
@@ -389,15 +394,25 @@ ARG INSTALL_SWOOLE=false
 
 RUN if [ ${INSTALL_SWOOLE} = true ]; then \
     # Install Php Swoole Extension
-    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-      pecl -q install swoole-2.0.11; \
-    else \
-      if [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ]; then \
-        pecl install swoole-2.2.0; \
-      else \
-        pecl install swoole; \
-      fi \
-    fi && \
+    # if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+    #   pecl -q install swoole-2.0.11; \
+    # else \
+    #   if [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ]; then \
+    #     pecl install swoole-2.2.0; \
+    #   else \
+    #     pecl install swoole; \
+    #   fi \
+    # fi && \
+    curl -L -o /tmp/swoole-4.2.9.tar.gz "https://github.com/swoole/swoole-src/archive/v4.2.9.tar.gz" && \
+    cd /tmp && \
+    tar -zxvf /tmp/swoole-4.2.9.tar.gz && \
+    cd swoole-src-4.2.9 && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    rm -rf ../swoole-src-4.2.9 && \
+    rm /tmp/swoole-4.2.9.tar.gz && \
     echo "extension=swoole.so" >> /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini && \
     ln -s /etc/php/${LARADOCK_PHP_VERSION}/mods-available/swoole.ini /etc/php/${LARADOCK_PHP_VERSION}/cli/conf.d/20-swoole.ini \
 ;fi

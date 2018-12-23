@@ -113,12 +113,23 @@ ARG INSTALL_XDEBUG=false
 
 RUN if [ ${INSTALL_XDEBUG} = true ]; then \
   # Install the xdebug extension
-  if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-    pecl install xdebug-2.5.5; \
-  else \
-    pecl install xdebug; \
-  fi && \
-  docker-php-ext-enable xdebug \
+  # if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+  #   pecl install xdebug-2.5.5; \
+  # else \
+  #   pecl install xdebug; \
+  # fi && \
+  # docker-php-ext-enable xdebug \
+    curl -L -o /tmp/xdebug-2.6.1.tgz "http://xdebug.org/files/xdebug-2.6.1.tgz" && \
+    cd /tmp && \
+    tar -xvzf xdebug-2.6.1.tgz && \
+    cd xdebug-2.6.1 && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    docker-php-ext-enable xdebug && \
+    rm -rf ../xdebug-2.6.1 && \
+    rm /tmp/xdebug-2.6.1.tgz \
 ;fi
 
 # Copy xdebug configuration for remote debugging
@@ -174,7 +185,7 @@ RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
         && make \
         && make install \
     ) \
-    && rm -r phpredis \
+    && rm -rf ../phpredis \
     && rm /tmp/phpredis.tar.gz \
     && docker-php-ext-enable redis \
 ;fi
@@ -187,16 +198,26 @@ ARG INSTALL_SWOOLE=false
 
 RUN if [ ${INSTALL_SWOOLE} = true ]; then \
     # Install Php Swoole Extension
-    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-      pecl install swoole-2.0.11; \
-    else \
-      if [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ]; then \
-        pecl install swoole-2.2.0; \
-      else \
-        pecl install swoole; \
-      fi \
-    fi && \
-    docker-php-ext-enable swoole \
+    # if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+    #   pecl install swoole-2.0.11; \
+    # else \
+    #   if [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ]; then \
+    #     pecl install swoole-2.2.0; \
+    #   else \
+    #     pecl install swoole; \
+    #   fi \
+    # fi && \
+    curl -L -o /tmp/swoole-4.2.9.tar.gz "https://github.com/swoole/swoole-src/archive/v4.2.9.tar.gz" && \
+    cd /tmp && \
+    tar -zxvf /tmp/swoole-4.2.9.tar.gz && \
+    cd swoole-src-4.2.9 && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    docker-php-ext-enable swoole && \
+    rm -rf ../swoole-src-4.2.9 && \
+    rm /tmp/swoole-4.2.9.tar.gz \
 ;fi
 
 ###########################################################################
