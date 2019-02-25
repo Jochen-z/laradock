@@ -395,11 +395,12 @@ RUN if [ ${INSTALL_IONCUBE} = true ]; then \
 # Opcache:
 ###########################################################################
 
-ARG INSTALL_OPCACHE=false
+ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS="0" \
+    PHP_OPCACHE_MAXACCELERATED_FILES="10000" \
+    PHP_OPCACHE_MEMORY_CONSUMPTION="256" \
+    PHP_OPCACHE_MAX_WASTED_PRECENTAGE="10"
 
-RUN if [ ${INSTALL_OPCACHE} = true ]; then \
-    docker-php-ext-install opcache \
-;fi
+RUN docker-php-ext-install opcache
 
 # Copy opcache configration
 COPY ./opcache.ini /usr/local/etc/php/conf.d/opcache.ini

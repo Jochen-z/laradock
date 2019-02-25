@@ -81,6 +81,7 @@ services:
         - "dockerhost:${DOCKER_HOST_IP}"
       ports:
         - "${WORKSPACE_SSH_PORT}:22"
+        - "8080:8080"
       tty: true
       environment:
         - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
@@ -136,6 +137,10 @@ services:
         - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
         - DOCKER_HOST=tcp://docker-in-docker:2375
         - FAKETIME=${PHP_FPM_FAKETIME}
+        - PHP_OPCACHE_VALIDATE_TIMESTAMPS=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}
+        - PHP_OPCACHE_MAXACCELERATED_FILES=${PHP_OPCACHE_MAXACCELERATED_FILES}
+        - PHP_OPCACHE_MEMORY_CONSUMPTION=${PHP_OPCACHE_MEMORY_CONSUMPTION}
+        - PHP_OPCACHE_MAX_WASTED_PRECENTAGE=${PHP_OPCACHE_MAX_WASTED_PRECENTAGE}
       depends_on:
         - workspace
       networks:
